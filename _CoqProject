@@ -1,0 +1,1 @@
+-R . CollatzProof valuation_density.v stopping_time_finite.v unique_cycle_psi.v modular_descent.v computational_check.v convergence.v
