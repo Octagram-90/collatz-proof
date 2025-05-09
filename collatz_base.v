@@ -1,13 +1,14 @@
 Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
 Import ListNotations.
 
-Fixpoint val2_aux (n acc : nat) : nat :=
+Fixpoint val2_aux (n : nat) : nat :=
   match n with
   | 0 => 0
-  | S m => if Nat.even n then val2_aux (n / 2) (S acc) else acc
+  | 1 => 0
+  | S (S m) => if Nat.even n then S (val2_aux (n / 2)) else 0
   end.
 
-Definition val2 (n : nat) : nat := val2_aux n 0.
+Definition val2 (n : nat) : nat := val2_aux n.
 
 Definition C (n : nat) : nat :=
   if Nat.even n then n / 2 else 3 * n + 1.
