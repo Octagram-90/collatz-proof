@@ -2,7 +2,10 @@ Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
 Import ListNotations.
 
 Fixpoint val2 (n : nat) : nat :=
-  if n =? 0 then 0 else if Nat.even n then S (val2 (n / 2)) else 0.
+  match n with
+  | 0 => 0
+  | S m => if Nat.even n then S (val2 (n / 2)) else 0
+  end.
 
 Definition C (n : nat) : nat :=
   if Nat.even n then n / 2 else 3 * n + 1.
