@@ -13,8 +13,9 @@ Proof.
     lia.
   - constructor.
     intros m [Hm [Heven Hpos]].
-    assert (m < S n') by (rewrite Hm; apply Nat.div_lt; lia).
-    apply IH; lia.
+    assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
+    apply IH.
+    lia.
 Qed.
 
 (* Definition of val2 using Function *)
