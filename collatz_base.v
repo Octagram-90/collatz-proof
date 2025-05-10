@@ -10,7 +10,7 @@ Proof.
   induction n as [|n' IH] using nat_ind.
   - constructor.
     intros m [_ [_ Hpos]].
-    lia.
+    exfalso; apply (Nat.lt_irrefl 0 Hpos).
   - constructor.
     intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
@@ -25,7 +25,7 @@ Function val2 (n : nat) {wf val2_wf n} : nat :=
   else 0.
 Proof.
   - intros n Hn Heven. unfold val2_decreases.
-    split; [reflexivity | split; [assumption | lia]].
+    split; [reflexivity | split; [assumption | auto with arith]].
   - apply val2_wf.
 Defined.
 
