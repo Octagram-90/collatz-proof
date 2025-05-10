@@ -25,8 +25,9 @@ jobs:
       run: |
         eval $(opam env)
         coqc -where
-        coqc --print-libraries
-        coqdep -Q . CollatzProof collatz_base.v -dump > deps.d
+        echo "COQPATH: $COQPATH"
+        ls -l "$(coqc -where)/theories"
+        coqdep -R . CollatzProof collatz_base.v -dump > deps.d
         cat deps.d
     - name: Compile
       run: |
