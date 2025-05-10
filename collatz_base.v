@@ -1,4 +1,5 @@
-Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals Lia.
+Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
+From Stdlib Require Lia.
 Import ListNotations.
 
 (* Well-founded relation for val2 *)
@@ -10,7 +11,7 @@ Proof.
   induction n as [|n' IH] using nat_ind.
   - constructor.
     intros m [_ [_ Hpos]].
-    exfalso; apply Nat.lt_irrefl with 0; exact Hpos.
+    inversion Hpos.
   - constructor.
     intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).

@@ -48,5 +48,5 @@ jobs:
         unset COQPATH
         rm -rf ~/.coq/user-contrib
         rm -f Makefile
-        coq_makefile -R "$(coqc -where)/theories" Coq -f _CoqProject -o Makefile
+        coq_makefile -docroot CollatzProof -R "$(coqc -where)/theories" Coq -f _CoqProject -o Makefile
         make
