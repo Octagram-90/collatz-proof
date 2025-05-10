@@ -1,3 +1,6 @@
+Require Import Coq.Program.Wf.
+Require Import Coq.Init.Wf.
+Require Import Coq.Recdef.
 Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
 From Stdlib Require Lia.
 Import ListNotations.
