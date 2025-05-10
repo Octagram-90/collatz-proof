@@ -39,7 +39,7 @@ jobs:
 
         echo "Creating OPAM switch '${SWITCH_NAME}' with OCaml ${OCAML_VERSION_FOR_SWITCH}..."
         if ! opam switch list --short | grep -q "^${SWITCH_NAME}$"; then
-          opam switch create "${SWITCH_NAME}" "${OCAML_VERSION_FOR_SWITCH}"
+          opam switch create "${SWITCH_NAME}" "${OCAML_VERSION_FOR_SWITCH}" || { echo "Switch creation failed"; exit 1; }
         else
           echo "Switch '${SWITCH_NAME}' already exists."
         fi
@@ -48,24 +48,32 @@ jobs:
         eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
 
         echo "Adding and updating OPAM repositories..."
-        opam repository add coq-released https://coq.inria.fr/opam/released --all-switches
-        opam update
+        opam repository add coq-released https://coq.inria.fr/opam/released --all-switches || { echo "Repository add failed"; exit 1; }
+        opam update || { echo "OPAM update failed"; exit 1; }
 
-        echo "Installing Coq 8.14.1 and Coq standard library..."
+        echo "Installing Coq 8.14.1 and dependencies..."
         for i in {1..3}; do
-          opam install -y coq.8.14.1 coq-stdlib && break
+          opam install -y coq.8.14.1 coq-stdlib coq-mathcomp-ssreflect && break
           echo "Retry $i failed, trying again..."
           sleep 5
         done
+        if ! opam list --installed | grep -q "coq.*8.14.1"; then
+          echo "Coq 8.14.1 installation failed"
+          opam list --all-versions coq
+          exit 1
+        fi
         echo "Coq installation complete."
 
     - name: Debug OPAM and Coq Setup
       run: |
+        echo "Listing OPAM switches..."
         opam switch list
+        echo "Listing installed packages..."
         opam list --installed
-        coqtop --version
+        echo "Checking Coq version..."
+        coqtop --version || { echo "coqtop not found"; exit 1; }
 
-    - name: Compile Coq project
+    - name: Compile Coq Project
       run: |
         SWITCH_NAME="collatz-proof"
 
@@ -73,11 +81,11 @@ jobs:
         eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
 
         echo "Generating Makefile using coq_makefile..."
-        coq_makefile -f _CoqProject -o Makefile
+        coq_makefile -f _CoqProject -o Makefile || { echo "coq_makefile failed"; exit 1; }
 
         echo "Inspecting Makefile..."
         cat Makefile
 
         echo "Compiling Coq project using make..."
-        make -j1 V=1
+        make -j1 V=1 || { echo "Compilation failed, showing errors:"; cat *.v.err; exit 1; }
         echo "Compilation complete."

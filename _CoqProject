@@ -1,5 +1,4 @@
 -R . CollatzProof
-
 collatz_base.v
 valuation_density.v
 stopping_time_finite.v
