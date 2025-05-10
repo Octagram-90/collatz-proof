@@ -1,4 +1,4 @@
-Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
+Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals Lia.
 Import ListNotations.
 
 (* Well-founded relation for val2 *)

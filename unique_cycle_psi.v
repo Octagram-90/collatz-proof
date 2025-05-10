@@ -1,4 +1,4 @@
-Require Import CollatzProof.collatz_base.
+Require Import CollatzProof.collatz_base Lia.
 
 Definition cycle_psi (l : list nat) : Prop :=
   length l > 0 /\ forall i, Psi (nth i l) = nth (i+1) mod length l l.

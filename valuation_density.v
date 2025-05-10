@@ -1,4 +1,4 @@
-Require Import CollatzProof.collatz_base.
+Require Import CollatzProof.collatz_base Lia.
 
 Lemma valuation_density : forall n k, odd n ->
   length (filter (fun i => val2 (3 * iterate_Psi i n + 1) >= 2) (seq 0 k)) >= Nat.div2 k.

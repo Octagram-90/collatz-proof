@@ -1,4 +1,4 @@
-Require Import CollatzProof.collatz_base CollatzProof.stopping_time_finite.
+Require Import CollatzProof.collatz_base CollatzProof.stopping_time_finite Lia.
 
 Fixpoint iterate_C_compose (k1 k2 n : nat) : nat :=
   iterate_C k1 (iterate_C k2 n).

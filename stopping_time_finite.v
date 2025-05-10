@@ -1,4 +1,4 @@
-Require Import CollatzProof.collatz_base CollatzProof.valuation_density.
+Require Import CollatzProof.collatz_base CollatzProof.valuation_density Lia.
 
 Fixpoint stopping_time_aux (n k max_k : nat) : nat :=
   if k >=? max_k then k

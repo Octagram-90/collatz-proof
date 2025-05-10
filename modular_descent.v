@@ -1,4 +1,4 @@
-Require Import CollatzProof.collatz_base.
+Require Import CollatzProof.collatz_base Lia.
 
 Lemma modular_descent : forall n, odd n -> exists k, k <= 16 /\ iterate_C k n mod 32 < n mod 32.
 Proof.

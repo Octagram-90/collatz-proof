@@ -1,4 +1,4 @@
-Require Import CollatzProof.collatz_base.
+Require Import CollatzProof.collatz_base Lia.
 
 Fixpoint collatz_steps (n k bound : nat) : option nat :=
   if n =? 1 then Some k
