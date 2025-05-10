@@ -27,4 +27,4 @@ make
 
 Note: computational_check.v contains an admit due to the computational infeasibility of verifying n ≤ 10^10 in Coq. This is verified externally (e.g., in Python) and documented.
 Contact
-This proof is maintained by Octagram-90 GitHub.
+

@@ -24,8 +24,10 @@ jobs:
     - name: Debug Loadpath
       run: |
         eval $(opam env)
-        coqc --print-where
+        coqc -where
         coqc --print-libraries
+        coqdep -Q . CollatzProof collatz_base.v -dump > deps.d
+        cat deps.d
     - name: Compile
       run: |
         eval $(opam env)

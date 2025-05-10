@@ -12,7 +12,7 @@ Proof.
     intros m [_ [_ Hpos]].
     exfalso; apply Nat.lt_irrefl with 0; exact Hpos.
   - constructor.
-    ints m [Hm [Heven Hpos]].
+    intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
     apply IH.
     apply Nat.le_lt_trans with n'; [apply Nat.div_le_mono; lia | lia].
