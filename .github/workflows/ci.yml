@@ -42,6 +42,11 @@ jobs:
         coqdep -R "$(coqc -where)/theories" Coq -R . CollatzProof collatz_base.v > deps.d
         cat deps.d
         coqc -R "$(coqc -where)/theories" Coq -R . CollatzProof -v collatz_base.v || true
+    - name: Debug Compilation
+      run: |
+        source opam-env.sh
+        unset COQPATH
+        coqc -R "$(coqc -where)/theories" Coq -R . CollatzProof collatz_base.v || true
     - name: Compile
       run: |
         source opam-env.sh
