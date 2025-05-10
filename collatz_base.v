@@ -10,7 +10,7 @@ Proof.
   induction n as [|n' IH] using nat_ind.
   - constructor.
     intros m [_ [_ Hpos]].
-    contradiction Hpos.
+    lia.
   - constructor.
     intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
