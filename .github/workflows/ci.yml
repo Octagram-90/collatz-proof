@@ -25,12 +25,14 @@ jobs:
       run: |
         eval $(opam env)
         coqc -where
+        export COQPATH="$(coqc -where)/theories"
         echo "COQPATH: $COQPATH"
         ls -l "$(coqc -where)/theories"
-        coqdep -R . CollatzProof collatz_base.v -dump > deps.d
+        coqdep -R . CollatzProof collatz_base.v > deps.d
         cat deps.d
     - name: Compile
       run: |
         eval $(opam env)
+        export COQPATH="$(coqc -where)/theories"
         coq_makefile -f _CoqProject -o Makefile
         make
