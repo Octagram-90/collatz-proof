@@ -9,10 +9,12 @@ Lemma val2_wf : well_founded val2_decreases.
 Proof.
   unfold well_founded. intros n.
   induction n as [|n' IH] using nat_ind.
-  { constructor.
+  { (* Case: n = 0 *)
+    constructor.
     intros m [_ [_ Hpos]].
     inversion Hpos. }
-  { constructor.
+  { (* Case: n = S n' *)
+    constructor.
     intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
     apply IH.
