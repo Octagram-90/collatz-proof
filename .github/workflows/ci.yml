@@ -16,16 +16,22 @@ jobs:
         opam-repositories: |
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
+    - name: Create OPAM Switch
+      run: |
+        opam switch create collatz-proof ocaml-base-compiler.4.14.1
+        eval $(opam env --switch=collatz-proof)
     - name: Install Coq
       run: |
-        eval $(opam env)
+        eval $(opam env --switch=collatz-proof)
         opam update
         opam install -y coq.8.14.1
+        opam reinstall coq
+        opam upgrade --all
     - name: Debug Loadpath
       run: |
-        eval $(opam env)
+        eval $(opam env --switch=collatz-proof)
+        unset COQPATH
         coqc -where
-        export COQPATH="$(coqc -where)/theories"
         echo "COQPATH: $COQPATH"
         ls -l "$(coqc -where)/theories"
         coqdep -R "$(coqc -where)/theories" Coq -R . CollatzProof collatz_base.v > deps.d
@@ -33,8 +39,9 @@ jobs:
         coqc -R "$(coqc -where)/theories" Coq -R . CollatzProof -v collatz_base.v || true
     - name: Compile
       run: |
-        eval $(opam env)
-        export COQPATH="$(coqc -where)/theories"
+        eval $(opam env --switch=collatz-proof)
+        unset COQPATH
+        rm -rf ~/.coq/user-contrib
         rm -f Makefile
         coq_makefile -R "$(coqc -where)/theories" Coq -f _CoqProject -o Makefile
         make
