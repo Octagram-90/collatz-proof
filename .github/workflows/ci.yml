@@ -8,26 +8,54 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    # Using ubuntu-22.04 as a widely supported LTS version.
+    # You can change this back to ubuntu-24.04 if preferred and tested.
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up OCaml and OPAM
       uses: ocaml/setup-ocaml@v3
       with:
-        ocaml-compiler: 4.14.1
+        # Specify the OCaml compiler version for the base environment.
+        # Quoting version numbers is a good practice in YAML.
+        ocaml-compiler: '4.14.1'
         opam-repositories: |
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
 
-    - name: Create OPAM Switch
+    - name: Create OPAM Switch and Install Coq
       run: |
-        opam switch create collatz-proof ocaml-base-compiler.4.14.1
+        # Define the switch name for clarity and to ensure consistency.
+        SWITCH_NAME="collatz-proof"
+        # Define the OCaml version for the switch explicitly.
+        OCAML_VERSION_FOR_SWITCH="ocaml-base-compiler.4.14.1"
+
+        echo "Creating OPAM switch '${SWITCH_NAME}' with OCaml ${OCAML_VERSION_FOR_SWITCH}..."
+        opam switch create "${SWITCH_NAME}" "${OCAML_VERSION_FOR_SWITCH}"
+
+        echo "Activating environment for switch '${SWITCH_NAME}'..."
+        # Explicitly activate the environment for the created switch.
+        # The '--set-switch' option makes this switch the current one for this shell session and for opam.
+        eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
+
+        echo "Installing Coq 8.14.1 in switch '${SWITCH_NAME}'..."
         opam install -y coq.8.14.1
-        eval $(opam env)
+        echo "Coq installation complete."
 
     - name: Compile Coq project
       run: |
-        eval $(opam env)
+        # Define the switch name, ensuring it matches the one used in the previous step.
+        SWITCH_NAME="collatz-proof"
+
+        echo "Activating environment for switch '${SWITCH_NAME}' for compilation..."
+        # Explicitly activate the environment for the correct switch before compilation.
+        # This ensures that 'coq_makefile' and 'make' use the Coq binaries from this switch.
+        eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
+
+        echo "Generating Makefile using coq_makefile..."
         coq_makefile -f _CoqProject -o Makefile
+
+        echo "Compiling Coq project using make..."
         make
+        echo "Compilation complete."
