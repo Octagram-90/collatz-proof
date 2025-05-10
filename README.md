@@ -10,7 +10,7 @@ This repository contains a fully Coq-verified proof of the Collatz conjecture, a
    ```
 2. Clone this repository:
    ```bash
-   git clone https://github.com/xAI/collatz-proof
+   git clone [(https://github.com/Octagram-90/collatz-proof)]
    cd collatz-proof
    ```
 3. Compile the Coq files:
