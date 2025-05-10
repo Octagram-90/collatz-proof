@@ -1,14 +1,17 @@
 name: CI
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up OCaml and OPAM
       uses: ocaml/setup-ocaml@v3
       with:
@@ -16,43 +19,15 @@ jobs:
         opam-repositories: |
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
+
     - name: Create OPAM Switch
       run: |
         opam switch create collatz-proof ocaml-base-compiler.4.14.1
-        opam env --switch=collatz-proof --set-switch > opam-env.sh
-        source opam-env.sh
-        echo "OPAM_ENV=$(cat opam-env.sh)" >> $GITHUB_ENV
-    - name: Install Coq
-      run: |
-        source opam-env.sh
-        opam update
         opam install -y coq.8.14.1
-        opam reinstall coq
-        opam upgrade --all
-        opam list
-        which coqc
-        coqc -v
-    - name: Debug Loadpath
+        eval $(opam env)
+
+    - name: Compile Coq project
       run: |
-        source opam-env.sh
-        unset COQPATH
-        coqc -where
-        echo "COQPATH: $COQPATH"
-        ls -l "$(coqc -where)/theories"
-        coqdep -R "$(coqc -where)/theories" Coq -R . CollatzProof collatz_base.v > deps.d
-        cat deps.d
-        coqc -R "$(coqc -where)/theories" Coq -R . CollatzProof -v collatz_base.v || true
-    - name: Debug Proof State
-      run: |
-        source opam-env.sh
-        unset COQPATH
-        cat collatz_base.v
-        coqc -R "$(coqc -where)/theories" Coq -R . CollatzProof -v collatz_base.v || true
-    - name: Compile
-      run: |
-        source opam-env.sh
-        unset COQPATH
-        rm -rf ~/.coq/user-contrib
-        rm -f Makefile
-        coq_makefile -docroot CollatzProof -R "$(coqc -where)/theories" Coq -f _CoqProject -o Makefile
+        eval $(opam env)
+        coq_makefile -f _CoqProject -o Makefile
         make
