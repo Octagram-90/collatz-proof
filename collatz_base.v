@@ -1,12 +1,10 @@
-Require Import Coq.Program.Wf.
-Require Import Coq.Init.Wf.
-Require Import Coq.Recdef.
 Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
+Require Import Coq.Program.Wf Coq.Init.Wf Coq.Recdef.
 From Stdlib Require Lia.
 Import ListNotations.
 
 (* Well-founded relation for val2 *)
-Definition val2_decreases (n m : nat) : Prop := m = n / 2 /\ Nat.even n = true /\ n > 0.
+Definition val2_decreases (n m : nat) : Prop := m = n / 2 /\ Nat.even n = true /\ m < n.
 
 Lemma val2_wf : well_founded val2_decreases.
 Proof.
@@ -14,24 +12,22 @@ Proof.
   induction n as [|n' IH] using nat_ind.
   { (* Case: n = 0 *)
     constructor.
-    intros m [_ [_ Hpos]].
-    inversion Hpos. }
+    intros m [Hm _]. lia. }
   { (* Case: n = S n' *)
     constructor.
-    intros m [Hm [Heven Hpos]].
-    assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
-    apply IH.
-    apply Nat.le_lt_trans with n'; [apply Nat.div_le_mono; lia | lia]. }
+    intros m [Hm [_ Hlt]].
+    apply IH. lia. }
 Qed.
 
 (* Definition of val2 using Function *)
-Function val2 (n : nat) {wf val2_wf n} : nat :=
+Function val2 (n : nat) {wf val2_decreases n} : nat :=
   if n =? 0 then 0
   else if Nat.even n then S (val2 (n / 2))
   else 0.
 Proof.
   - intros n Hn Heven. unfold val2_decreases.
-    split; [reflexivity | split; [assumption | auto with arith]].
+    repeat split; auto.
+    apply Nat.div_lt; lia.
   - apply val2_wf.
 Defined.
 
@@ -42,7 +38,8 @@ Fixpoint iterate_C (k n : nat) : nat :=
   match k with 0 => n | S k' => C (iterate_C k' n) end.
 
 Definition Psi (n : nat) : nat :=
-  if Nat.even n then n / (2 ^ val2 n) else
+  if Nat.even n then n / (2 ^ val2 n)
+  else
     let m := 3 * n + 1 in m / (2 ^ val2 m).
 
 Fixpoint iterate_Psi (k n : nat) : nat :=
