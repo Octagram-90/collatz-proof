@@ -28,4 +28,4 @@ This repository contains a fully Coq-verified proof of the Collatz conjecture, a
 - `convergence.v`: Main convergence theorem.
 
 ## Contact
-For questions, contact [your email or xAI contact].
+For questions, contact diaadeek90@gmail.com.
