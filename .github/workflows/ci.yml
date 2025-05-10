@@ -32,64 +32,62 @@ jobs:
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
 
-    - name: Create OPAM Switch and Install Coq
+    - name: Create Clean OPAM Switch
       run: |
         SWITCH_NAME="collatz-proof"
-        OCAML_VERSION_FOR_SWITCH="ocaml-base-compiler.4.14.1"
+        OCAML_VERSION="ocaml-base-compiler.4.14.1"
 
-        echo "Creating OPAM switch '${SWITCH_NAME}' with OCaml ${OCAML_VERSION_FOR_SWITCH}..."
-        if ! opam switch list --short | grep -q "^${SWITCH_NAME}$"; then
-          opam switch create "${SWITCH_NAME}" "${OCAML_VERSION_FOR_SWITCH}" || { echo "Switch creation failed"; exit 1; }
-        else
-          echo "Switch '${SWITCH_NAME}' already exists."
-        fi
+        echo "Removing existing switch if present..."
+        opam switch remove "${SWITCH_NAME}" --yes || true
 
-        echo "Activating environment for switch '${SWITCH_NAME}'..."
+        echo "Creating OPAM switch '${SWITCH_NAME}' with OCaml ${OCAML_VERSION}..."
+        opam switch create "${SWITCH_NAME}" "${OCAML_VERSION}" || { echo "Switch creation failed"; exit 1; }
+
+        echo "Activating environment..."
         eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
 
-        echo "Adding and updating OPAM repositories..."
+        echo "Adding OPAM repository..."
         opam repository add coq-released https://coq.inria.fr/opam/released --all-switches || { echo "Repository add failed"; exit 1; }
         opam update || { echo "OPAM update failed"; exit 1; }
 
+    - name: Install Coq
+      run: |
         echo "Pinning and installing Coq 8.16.1..."
         opam pin add coq 8.16.1 -y --verbose || { echo "Coq 8.16.1 pinning/installation failed"; opam list --all-versions coq; exit 1; }
+        opam install coq.8.16.1 -y --verbose || { echo "Coq 8.16.1 installation failed"; exit 1; }
 
+    - name: Install Dependencies
+      run: |
         echo "Installing coq-elpi..."
         opam install -y --verbose coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
 
         echo "Installing coq-mathcomp-ssreflect..."
         opam install -y --verbose coq-mathcomp-ssreflect.2.4.0 || { echo "coq-mathcomp-ssreflect installation failed"; exit 1; }
 
-        echo "Verifying Coq installation..."
+    - name: Verify Installation
+      run: |
+        echo "Listing installed packages..."
+        opam list --installed
+        echo "Checking Coq version..."
+        coqtop --version || { echo "coqtop not found"; exit 1; }
         if ! opam list --installed | grep -q "coq.*8.16.1"; then
           echo "Coq 8.16.1 not found in installed packages"
           opam list --all-versions coq
           exit 1
         fi
-        echo "Coq installation complete."
-
-    - name: Debug OPAM and Coq Setup
-      run: |
-        echo "Listing OPAM switches..."
-        opam switch list
-        echo "Listing installed packages..."
-        opam list --installed
-        echo "Checking Coq version..."
-        coqtop --version || { echo "coqtop not found"; exit 1; }
+        echo "Coq installation verified."
 
     - name: Compile Coq Project
       run: |
-        SWITCH_NAME="collatz-proof"
+        echo "Activating environment..."
+        eval $(opam env --switch=collatz-proof --set-switch)
 
-        echo "Activating environment for switch '${SWITCH_NAME}'..."
-        eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
-
-        echo "Generating Makefile using coq_makefile..."
+        echo "Generating Makefile..."
         coq_makefile -f _CoqProject -o Makefile || { echo "coq_makefile failed"; exit 1; }
 
         echo "Inspecting Makefile..."
         cat Makefile
 
-        echo "Compiling Coq project using make..."
+        echo "Compiling Coq project..."
         make -j1 V=1 || { echo "Compilation failed, showing errors:"; cat *.v.err; exit 1; }
         echo "Compilation complete."
