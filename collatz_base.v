@@ -1,16 +1,8 @@
-Require Import Coq.Program.Wf Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
+Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals.
 Import ListNotations.
 
-Program Fixpoint val2 (n : nat) {measure n} : nat :=
-  if n =? 0 then 0 else
-  if Nat.even n then S (val2 (n / 2)) else 0.
-Next Obligation.
-  unfold lt.
-  apply Nat.div_lt; auto.
-  - apply Nat.neq_0_lt_0; auto.
-    intro H; rewrite H in Heq_anonymous; discriminate Heq_anonymous.
-  - lia.
-Qed.
+Fixpoint val2 (n : nat) : nat :=
+  if n =? 0 then 0 else if Nat.even n then S (val2 (n / 2)) else 0.
 
 Definition C (n : nat) : nat :=
   if Nat.even n then n / 2 else 3 * n + 1.
