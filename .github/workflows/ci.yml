@@ -19,17 +19,22 @@ jobs:
     - name: Create OPAM Switch
       run: |
         opam switch create collatz-proof ocaml-base-compiler.4.14.1
-        eval $(opam env --switch=collatz-proof)
+        opam env --switch=collatz-proof --set-switch > opam-env.sh
+        source opam-env.sh
+        echo "OPAM_ENV=$(cat opam-env.sh)" >> $GITHUB_ENV
     - name: Install Coq
       run: |
-        eval $(opam env --switch=collatz-proof)
+        source opam-env.sh
         opam update
         opam install -y coq.8.14.1
         opam reinstall coq
         opam upgrade --all
+        opam list
+        which coqc
+        coqc -v
     - name: Debug Loadpath
       run: |
-        eval $(opam env --switch=collatz-proof)
+        source opam-env.sh
         unset COQPATH
         coqc -where
         echo "COQPATH: $COQPATH"
@@ -39,7 +44,7 @@ jobs:
         coqc -R "$(coqc -where)/theories" Coq -R . CollatzProof -v collatz_base.v || true
     - name: Compile
       run: |
-        eval $(opam env --switch=collatz-proof)
+        source opam-env.sh
         unset COQPATH
         rm -rf ~/.coq/user-contrib
         rm -f Makefile
