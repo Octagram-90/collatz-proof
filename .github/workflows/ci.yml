@@ -31,7 +31,6 @@ jobs:
         opam-repositories: |
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
-          coq-core-dev: https://coq.inria.fr/opam/core-dev
 
     - name: Create OPAM Switch and Install Coq
       run: |
@@ -50,11 +49,10 @@ jobs:
 
         echo "Adding and updating OPAM repositories..."
         opam repository add coq-released https://coq.inria.fr/opam/released --all-switches || { echo "Repository add failed"; exit 1; }
-        opam repository add coq-core-dev https://coq.inria.fr/opam/core-dev --all-switches || { echo "Repository add failed"; exit 1; }
         opam update || { echo "OPAM update failed"; exit 1; }
 
-        echo "Installing Coq 8.16.1..."
-        opam pin add coq 8.16.1 -y --verbose || { echo "Coq 8.16.1 installation failed"; exit 1; }
+        echo "Pinning and installing Coq 8.16.1..."
+        opam pin add coq 8.16.1 -y --verbose || { echo "Coq 8.16.1 pinning/installation failed"; opam list --all-versions coq; exit 1; }
 
         echo "Installing coq-elpi..."
         opam install -y --verbose coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
