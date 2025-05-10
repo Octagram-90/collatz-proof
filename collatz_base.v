@@ -8,7 +8,7 @@ Lemma val2_wf : well_founded val2_decreases.
 Proof.
   unfold well_founded. intros n.
   induction n as [|n' IH] using nat_ind.
-  - constructor. intros m [Hm [_ Hpos]]. lia. (* Contradiction: 0 > 0 *)
+  - constructor. intros m [_ [_ Hpos]]. contradiction (Nat.lt_irrefl 0 Hpos).
   - constructor. intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; lia).
     apply IH; lia.
