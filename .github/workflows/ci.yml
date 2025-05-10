@@ -6,15 +6,21 @@ on:
     branches: [ main ]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up OPAM
       uses: ocaml/setup-ocaml@v2
       with:
-        ocaml-compiler: 4.12.x
+        ocaml-compiler: 4.12.1
+        opam-repositories: |
+          default: https://opam.ocaml.org
+        opam-depext: false
     - name: Install Coq
-      run: opam install -y coq.8.14.1
+      run: |
+        eval $(opam env)
+        opam update
+        opam install -y coq.8.14.1
     - name: Compile
       run: |
         eval $(opam env)
