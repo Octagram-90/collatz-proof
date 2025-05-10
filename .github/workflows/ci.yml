@@ -21,6 +21,11 @@ jobs:
         eval $(opam env)
         opam update
         opam install -y coq.8.14.1
+    - name: Debug Loadpath
+      run: |
+        eval $(opam env)
+        coqc --print-where
+        coqc --print-libraries
     - name: Compile
       run: |
         eval $(opam env)
