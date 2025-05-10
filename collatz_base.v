@@ -2,27 +2,30 @@ Require Import Coq.Arith.Arith Coq.Lists.List Coq.Reals.Reals Lia.
 Import ListNotations.
 
 (* Well-founded relation for val2 *)
-Definition val2_decreases (n m : nat) : Prop := m = n / 2 /\ Nat.even n = true /\ n > 0.
+Definition nat_quotient_half_lt (n : nat) : Prop := n > 1 -> n / 2 < n.
 
-Lemma val2_wf : well_founded val2_decreases.
+Lemma nat_quotient_half_lt_pf : forall n, nat_quotient_half_lt n.
 Proof.
-  unfold well_founded. intros n.
-  induction n as [|n' IH] using nat_ind.
-  - constructor. intros m [_ [_ Hpos]]. contradiction (Nat.lt_irrefl 0 Hpos).
-  - constructor. intros m [Hm [Heven Hpos]].
-    assert (m < S n') by (rewrite Hm; apply Nat.div_lt; lia).
-    apply IH; lia.
+  intros n.
+  destruct n.
+  - simpl. auto.
+  - destruct n.
+    + simpl. auto.
+    + induction n as [|n' IH]; simpl.
+      * intros H. lia.
+      * intros H. assert (n' / 2 < S n') as IH' by (apply IH; lia).
+        simpl. lia.
 Qed.
 
 (* Definition of val2 using Function *)
-Function val2 (n : nat) {wf val2_wf n} : nat :=
+Function val2 (n : nat) {wf nat_quotient_half_lt_pf n} : nat :=
   if n =? 0 then 0
   else if Nat.even n then S (val2 (n / 2))
   else 0.
 Proof.
-  - intros n Hn Heven. unfold val2_decreases.
-    split; [reflexivity | split; [assumption | lia]].
-  - apply val2_wf.
+  - intros n Hn Heven. unfold nat_quotient_half_lt.
+    intros H. apply Nat.div_lt; lia.
+  - apply nat_quotient_half_lt_pf.
 Defined.
 
 Definition C (n : nat) : nat :=
