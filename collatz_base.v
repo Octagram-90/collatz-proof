@@ -9,14 +9,14 @@ Lemma val2_wf : well_founded val2_decreases.
 Proof.
   unfold well_founded. intros n.
   induction n as [|n' IH] using nat_ind.
-  - constructor.
+  { constructor.
     intros m [_ [_ Hpos]].
-    inversion Hpos.
-  - constructor.
+    inversion Hpos. }
+  { constructor.
     intros m [Hm [Heven Hpos]].
     assert (m < S n') by (rewrite Hm; apply Nat.div_lt; auto with arith).
     apply IH.
-    apply Nat.le_lt_trans with n'; [apply Nat.div_le_mono; lia | lia].
+    apply Nat.le_lt_trans with n'; [apply Nat.div_le_mono; lia | lia]. }
 Qed.
 
 (* Definition of val2 using Function *)
