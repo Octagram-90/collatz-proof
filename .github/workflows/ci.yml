@@ -64,4 +64,30 @@ jobs:
         echo "Checking Coq version..."
         eval $(opam env --switch=collatz-proof --set-switch)
         which coqtop || { echo "coqtop binary not found in PATH"; exit 1; }
-        coqtop --version || { echo "coqtop execution failed
+        coqtop --version || { echo "coqtop execution failed"; exit 1; }
+
+    - name: Install Dependencies
+      run: |
+        echo "Installing Coq-related dependencies..."
+        opam install -y --verbose --debug coq-elpi.2.5.2 coq-mathcomp-ssreflect.2.4.0 || { echo "Dependency installation failed"; exit 1; }
+
+    - name: Upload Logs for Debugging
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: opam-debug-logs
+        path: |
+          *.log
+        retention-days: 7
+
+    - name: Compile Coq Project
+      run: |
+        echo "Activating environment..."
+        eval $(opam env --switch=collatz-proof --set-switch)
+
+        echo "Generating Makefile..."
+        coq_makefile -f _CoqProject -o Makefile -extra '-w -elpi.linear-variable -elpi.missing-types' || { echo "coq_makefile failed"; exit 1; }
+
+        echo "Compiling Coq project..."
+        make -j1 V=1 || { echo "Compilation failed, showing errors:"; cat *.v.err; exit 1; }
+        echo "Compilation complete."
