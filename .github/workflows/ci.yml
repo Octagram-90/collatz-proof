@@ -58,6 +58,12 @@ jobs:
         which coqtop || { echo "coqtop binary not found in PATH"; exit 1; }
         coqtop --version || { echo "coqtop execution failed"; exit 1; }
 
+    - name: Ensure Coq Paths Are Set
+      run: |
+        COQ_PATH=$(opam var coq:bin)
+        echo "COQ_PATH is $COQ_PATH"
+        echo "export PATH=$COQ_PATH:\$PATH" >> $GITHUB_ENV
+
     - name: Install Dependencies
       run: |
         echo "Installing Coq-related dependencies..."
