@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v2 # Increment v2 to invalidate cache
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v3 # Incremented to v3 to invalidate cache
         restore-keys: |
           ${{ runner.os }}-opam-
 
@@ -136,7 +136,7 @@ jobs:
     #     echo $PATH
     #     echo "Verifying OPAM environment..."
     #     opam env
-
+    #
     # - name: Install Coq (Alternative 1 - Simplified Pinning)
     #   run: |
     #     set -e
@@ -180,7 +180,7 @@ jobs:
     #     echo $PATH
     #     echo "Verifying OPAM environment..."
     #     opam env
-
+    #
     # - name: Install Rocq (Alternative 3 - Rocq Setup)
     #   run: |
     #     set -e
@@ -265,14 +265,20 @@ jobs:
         eval $(opam env --switch=collatz-proof --set-switch)
         echo "Verifying OPAM environment..."
         opam env
-
         echo "Generating Makefile..."
-        coq_makefile -f _CoqProject -o Makefile -extra '-w -elpi.linear-variable -elpi.missing-types' || { echo "coq_makefile failed"; exit 1; }
-
+        coq_makefile -f _CoqProject -o Makefile -W "-elpi.linear-variable,-elpi.missing-types"
+        if [ $? -ne 0 ]; then
+          echo "coq_makefile failed"
+          exit 1
+        fi
         echo "Inspecting Makefile..."
         cat Makefile
-
         echo "Compiling Coq project..."
-        make -j1 V=1 || { echo "Compilation failed, showing errors:"; cat *.v.err; exit 1; }
+        make -j1 V=1
+        if [ $? -ne 0 ]; then
+          echo "Compilation failed, showing errors:"
+          cat *.v.err || true
+          exit 1
+        fi
         echo "Compilation complete."
 ```
