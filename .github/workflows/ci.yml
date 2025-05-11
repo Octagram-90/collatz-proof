@@ -20,14 +20,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles(\'**/_CoqProject\') }}
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}
         restore-keys: |
           ${{ runner.os }}-opam-
 
     - name: Set up OCaml and OPAM
       uses: ocaml/setup-ocaml@v3
       with:
-        ocaml-compiler: \'4.14.1\'
+        ocaml-compiler: '4.14.1'
         opam-repositories: |
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
@@ -40,11 +40,11 @@ jobs:
         echo "Removing existing switch if present..."
         opam switch remove "${SWITCH_NAME}" --yes || true
 
-        echo "Creating OPAM switch \'${SWITCH_NAME}\' with OCaml ${OCAML_VERSION}..."
+        echo "Creating OPAM switch '${SWITCH_NAME}' with OCaml ${OCAML_VERSION}..."
         opam switch create "${SWITCH_NAME}" "${OCAML_VERSION}" || { echo "Switch creation failed"; exit 1; }
 
-        echo "Activating environment for this step..."
-        eval $(opam env --switch="${SWITCH_NAME}" --set-switch) 
+        echo "Activating environment..."
+        eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
 
         echo "Adding OPAM repository..."
         opam repository add coq-released https://coq.inria.fr/opam/released --all-switches || { echo "Repository add failed"; exit 1; }
@@ -52,14 +52,12 @@ jobs:
 
     - name: Install Coq
       run: |
-        eval $(opam env --switch=collatz-proof --set-switch) 
         echo "Pinning and installing Coq 8.16.1..."
         opam pin add coq 8.16.1 -y --verbose || { echo "Coq 8.16.1 pinning/installation failed"; opam list --all-versions coq; exit 1; }
         opam install coq.8.16.1 -y --verbose || { echo "Coq 8.16.1 installation failed"; exit 1; }
 
     - name: Install Dependencies
       run: |
-        eval $(opam env --switch=collatz-proof --set-switch)
         echo "Installing coq-elpi..."
         opam install -y --verbose coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
 
@@ -68,7 +66,6 @@ jobs:
 
     - name: Verify Installation
       run: |
-        eval $(opam env --switch=collatz-proof --set-switch)
         echo "Listing installed packages..."
         opam list --installed
         echo "Checking Coq version..."
@@ -82,7 +79,9 @@ jobs:
 
     - name: Compile Coq Project
       run: |
+        echo "Activating environment..."
         eval $(opam env --switch=collatz-proof --set-switch)
+
         echo "Generating Makefile..."
         coq_makefile -f _CoqProject -o Makefile || { echo "coq_makefile failed"; exit 1; }
 
