@@ -37,182 +37,31 @@ jobs:
         SWITCH_NAME="collatz-proof"
         OCAML_VERSION="ocaml-base-compiler.4.14.1"
 
-        echo "Removing existing switch if present..."
-        opam switch remove "${SWITCH_NAME}" --yes || true
-
-        echo "Creating OPAM switch '${SWITCH_NAME}' with OCAML ${OCAML_VERSION}..."
+        echo "Creating OPAM switch '${SWITCH_NAME}'..."
         opam switch create "${SWITCH_NAME}" "${OCAML_VERSION}" || { echo "Switch creation failed"; exit 1; }
-
         echo "Activating environment..."
         eval $(opam env --switch="${SWITCH_NAME}" --set-switch)
 
         echo "Adding OPAM repository..."
-        opam repository add coq-released https://coq.inria.fr/opam/released --all-switches || { echo "Repository add failed"; exit 1; }
-        opam update || { echo "OPAM update failed"; exit 1; }
-        echo "Checking PATH..."
-        echo $PATH
-        echo "Verifying OPAM environment..."
-        opam env
+        opam repository add coq-released https://coq.inria.fr/opam/released --all-switches
+        opam update
 
-    # Alternative 1: Simplified Pinning with coq-released Repository
-    # - Uses opam pin add coq 8.16.1 without Git URL, relying on coq-released repository
-    # - This is the default configuration; to switch, comment this section and uncomment Alternative 2 or 3
-    - name: Pin Coq Version (Alternative 1 - Simplified Pinning)
+    - name: Install Coq
       run: |
-        echo "Listing available Coq versions..."
-        opam list --all-versions coq > coq_versions.log
-        cat coq_versions.log
-        echo "Listing repository state..."
-        opam repo list > repo_list.log
-        cat repo_list.log
-        echo "Pinning Coq 8.16.1 (Simplified Pinning)..."
-        opam pin add coq 8.16.1 -y --verbose --debug > pin_coq.log 2>&1 || { echo "Pinning failed"; cat pin_coq.log; opam list --all-versions coq; exit 1; }
-        cat pin_coq.log
-        echo "Updating environment..."
+        echo "Installing Coq 8.16.1..."
+        opam install coq.8.16.1 -y --verbose --debug || { echo "Coq installation failed"; exit 1; }
+        echo "Activating environment..."
         eval $(opam env --switch=collatz-proof --set-switch)
-        echo "Checking PATH..."
-        echo $PATH
-        echo "Verifying OPAM environment..."
-        opam env
 
-    - name: Install Coq (Alternative 1 - Simplified Pinning)
+    - name: Ensure Coq Paths Are Set
       run: |
-        echo "Installing Coq 8.16.1 (Simplified Pinning)..."
-        opam install coq.8.16.1 -y --verbose --debug > install_coq.log 2>&1 || { echo "Coq 8.16.1 installation failed"; cat install_coq.log; opam list --all-versions coq; exit 1; }
-        cat install_coq.log
-        echo "Updating environment..."
-        eval $(opam env --switch=collatz-proof --set-switch)
-        echo "Checking PATH..."
-        echo $PATH
-        echo "Checking coqtop location..."
-        which coqtop || { echo "coqtop not found in PATH"; exit 1; }
-        echo "Verifying OPAM environment..."
-        opam env
-
-    # Alternative 2: Explicit Git Pinning
-    # - Pins coq.8.16.1 to https://github.com/coq/coq.git#V8.16.1 to bypass coq-released issues
-    # - To use, comment out Alternative 1 and 3 sections, and uncomment this section
-    # - name: Pin Coq Version (Alternative 2 - Git Pinning)
-    #   run: |
-    #     echo "Listing available Coq versions..."
-    #     opam list --all-versions coq > coq_versions.log
-    #     cat coq_versions.log
-    #     echo "Listing repository state..."
-    #     opam repo list > repo_list.log
-    #     cat repo_list.log
-    #     echo "Pinning Coq 8.16.1 from Git..."
-    #     opam pin add coq 8.16.1 https://github.com/coq/coq.git#V8.16.1 -y --verbose --debug > pin_coq.log 2>&1 || { echo "Pinning failed"; cat pin_coq.log; opam list --all-versions coq; exit 1; }
-    #     cat pin_coq.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-
-    # - name: Install Coq (Alternative 2 - Git Pinning)
-    #   run: |
-    #     echo "Installing Coq 8.16.1 (Git Pinning)..."
-    #     opam install coq.8.16.1 -y --verbose --debug > install_coq.log 2>&1 || { echo "Coq 8.16.1 installation failed"; cat install_coq.log; opam list --all-versions coq; exit 1; }
-    #     cat install_coq.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Checking coqtop location..."
-    #     which coqtop || { echo "coqtop not found in PATH"; exit 1; }
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-
-    # Alternative 3: Rocq-Based Setup
-    # - Uses coq.9.0.0 to align with rocq-core.9.0.0 packages
-    # - Requires updating Coq files to use Corelib.* imports (e.g., Corelib.Init.Datatypes)
-    # - To use, comment out Alternative 1 and 2 sections, and uncomment this section
-    # - name: Pin Rocq Version (Alternative 3 - Rocq Setup)
-    #   run: |
-    #     echo "Listing available Coq versions..."
-    #     opam list --all-versions coq > coq_versions.log
-    #     cat coq_versions.log
-    #     echo "Listing repository state..."
-    #     opam repo list > repo_list.log
-    #     cat repo_list.log
-    #     echo "Pinning Rocq 9.0.0..."
-    #     opam pin add coq 9.0.0 -y --verbose --debug > pin_coq.log 2>&1 || { echo "Pinning failed"; cat pin_coq.log; opam list --all-versions coq; exit 1; }
-    #     cat pin_coq.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-
-    # - name: Install Rocq (Alternative 3 - Rocq Setup)
-    #   run: |
-    #     echo "Installing Rocq 9.0.0..."
-    #     opam install coq.9.0.0 -y --verbose --debug > install_coq.log 2>&1 || { echo "Rocq 9.0.0 installation failed"; cat install_coq.log; opam list --all-versions coq; exit 1; }
-    #     cat install_coq.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Checking coqtop location..."
-    #     which coqtop || { echo "coqtop not found in PATH"; exit 1; }
-    #     echo "Verifying OPAM environment..."
-    #     opam env
+        COQ_PATH=$(opam var coq:bin)
+        echo "COQ_PATH is $COQ_PATH"
+        echo "export PATH=$COQ_PATH:\$PATH" >> $GITHUB_ENV
 
     - name: Verify Coq Installation
       run: |
         echo "Checking Coq version..."
         eval $(opam env --switch=collatz-proof --set-switch)
-        coqtop --version > coq_version.log 2>&1 || { echo "coqtop binary not found in PATH"; cat coq_version.log; exit 1; }
-        cat coq_version.log
-        echo "Listing installed packages..."
-        opam list --installed > installed_packages.log
-        cat installed_packages.log
-        # Check for expected Coq version (8.16.1 for Alternatives 1 and 2, 9.0.0 for Alternative 3)
-        EXPECTED_VERSION=$(grep "coq.*\(8.16.1\|9.0.0\)" installed_packages.log || echo "")
-        if [ -z "$EXPECTED_VERSION" ]; then
-          echo "Expected Coq version (8.16.1 or 9.0.0) not found in installed packages"
-          opam list --all-versions coq
-          exit 1
-        fi
-        echo "Coq installation verified."
-
-    - name: Install Dependencies
-      run: |
-        echo "Installing coq-elpi..."
-        eval $(opam env --switch=collatz-proof --set-switch)
-        opam install -y --verbose --debug coq-elpi.2.5.2 > install_elpi.log 2>&1 || { echo "coq-elpi installation failed"; cat install_elpi.log; exit 1; }
-        cat install_elpi.log
-        echo "Installing coq-mathcomp-ssreflect..."
-        opam install -y --verbose --debug coq-mathcomp-ssreflect.2.4.0 > install_mathcomp.log 2>&1 || { echo "coq-mathcomp-ssreflect installation failed"; cat install_mathcomp.log; exit 1; }
-        cat install_mathcomp.log
-        echo "Updating environment..."
-        eval $(opam env --switch=collatz-proof --set-switch)
-
-    - name: Upload Logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: opam-logs
-        path: |
-          *.log
-        retention-days: 7
-
-    - name: Compile Coq Project
-      run: |
-        echo "Activating environment..."
-        eval $(opam env --switch=collatz-proof --set-switch)
-        echo "Verifying OPAM environment..."
-        opam env
-
-        echo "Generating Makefile..."
-        coq_makefile -f _CoqProject -o Makefile -extra '-w -elpi.linear-variable -elpi.missing-types' || { echo "coq_makefile failed"; exit 1; }
-
-        echo "Inspecting Makefile..."
-        cat Makefile
-
-        echo "Compiling Coq project..."
-        make -j1 V=1 || { echo "Compilation failed, showing errors:"; cat *.v.err; exit 1; }
-        echo "Compilation complete."
-```
+        which coqtop || { echo "coqtop binary not found in PATH"; exit 1; }
+        coqtop --version || { echo "coqtop execution failed
