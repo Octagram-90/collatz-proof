@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v7 # Incremented to v7
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v8 # Incremented to v8
         restore-keys: |
           ${{ runner.os }}-opam-
 
@@ -83,13 +83,14 @@ jobs:
         set -exo pipefail
         echo "Pinning Coq 8.16.1 from Git..."
         touch pin_coq.log
-        opam pin add coq 8.16.1 https://github.com/coq/coq.git#V8.16.1 -y --verbose --debug | stdbuf -oL tee -a pin_coq.log
+        opam pin add coq https://github.com/coq/coq.git#V8.16.1 -y --verbose --debug >> pin_coq.log 2>&1
         if [ $? -ne 0 ]; then
           echo "Pinning failed"
           cat pin_coq.log
           opam list --all-versions coq
           exit 1
         fi
+        stdbuf -oL tee -a pin_coq.log < pin_coq.log
         echo "Verifying pin_coq.log..."
         ls -l pin_coq.log
         cat pin_coq.log
@@ -109,13 +110,14 @@ jobs:
         touch install_coq.log
         opam install coq.8.16.1 --show-actions | stdbuf -oL tee -a install_coq.log
         echo "Installing Coq 8.16.1..."
-        opam install coq.8.16.1 -y --verbose --debug | stdbuf -oL tee -a install_coq.log
+        opam install coq.8.16.1 -y --verbose --debug >> install_coq.log 2>&1
         if [ $? -ne 0 ]; then
           echo "Coq 8.16.1 installation failed"
           cat install_coq.log
           opam list --all-versions coq
           exit 1
         fi
+        stdbuf -oL tee -a install_coq.log < install_coq.log
         echo "Verifying install_coq.log..."
         ls -l install_coq.log
         cat install_coq.log
@@ -147,13 +149,14 @@ jobs:
     #     set -exo pipefail
     #     echo "Pinning Coq 8.16.1..."
     #     touch pin_coq.log
-    #     opam pin add coq 8.16.1 -y --verbose --debug | stdbuf -oL tee -a pin_coq.log
+    #     opam pin add coq 8.16.1 -y --verbose --debug >> pin_coq.log 2>&1
     #     if [ $? -ne 0 ]; then
     #       echo "Pinning failed"
     #       cat pin_coq.log
     #       opam list --all-versions coq
     #       exit 1
     #     fi
+    #     stdbuf -oL tee -a pin_coq.log < pin_coq.log
     #     echo "Verifying pin_coq.log..."
     #     ls -l pin_coq.log
     #     cat pin_coq.log
@@ -173,13 +176,14 @@ jobs:
     #     touch install_coq.log
     #     opam install coq.8.16.1 --show-actions | stdbuf -oL tee -a install_coq.log
     #     echo "Installing Coq 8.16.1..."
-    #     opam install coq.8.16.1 -y --verbose --debug | stdbuf -oL tee -a install_coq.log
+    #     opam install coq.8.16.1 -y --verbose --debug >> install_coq.log 2>&1
     #     if [ $? -ne 0 ]; then
     #       echo "Coq 8.16.1 installation failed"
     #       cat install_coq.log
     #       opam list --all-versions coq
     #       exit 1
     #     fi
+    #     stdbuf -oL tee -a install_coq.log < install_coq.log
     #     echo "Verifying install_coq.log..."
     #     ls -l install_coq.log
     #     cat install_coq.log
@@ -212,13 +216,14 @@ jobs:
     #     set -exo pipefail
     #     echo "Pinning Rocq 9.0.0..."
     #     touch pin_coq.log
-    #     opam pin add coq 9.0.0 -y --verbose --debug | stdbuf -oL tee -a pin_coq.log
+    #     opam pin add coq 9.0.0 -y --verbose --debug >> pin_coq.log 2>&1
     #     if [ $? -ne 0 ]; then
     #       echo "Pinning failed"
     #       cat pin_coq.log
     #       opam list --all-versions coq
     #       exit 1
     #     fi
+    #     stdbuf -oL tee -a pin_coq.log < pin_coq.log
     #     echo "Verifying pin_coq.log..."
     #     ls -l pin_coq.log
     #     cat pin_coq.log
@@ -238,13 +243,14 @@ jobs:
     #     touch install_coq.log
     #     opam install coq.9.0.0 --show-actions | stdbuf -oL tee -a install_coq.log
     #     echo "Installing Rocq 9.0.0..."
-    #     opam install coq.9.0.0 -y --verbose --debug | stdbuf -oL tee -a install_coq.log
+    #     opam install coq.9.0.0 -y --verbose --debug >> install_coq.log 2>&1
     #     if [ $? -ne 0 ]; then
     #       echo "Rocq 9.0.0 installation failed"
     #       cat install_coq.log
     #       opam list --all-versions coq
     #       exit 1
     #     fi
+    #     stdbuf -oL tee -a install_coq.log < install_coq.log
     #     echo "Verifying install_coq.log..."
     #     ls -l install_coq.log
     #     cat install_coq.log
@@ -301,20 +307,23 @@ jobs:
         echo "Installing coq-elpi..."
         eval $(opam env --switch=collatz-proof --set-switch)
         touch install_elpi.log
-        opam install -y --verbose --debug coq-elpi.2.5.2 | stdbuf -oL tee -a install_elpi.log
+        opam install -y --verbose --debug coq-elpi.2.5.2 >> install_elpi.log 2>&1
         if [ $? -ne 0 ]; then
           echo "coq-elpi installation failed"
           cat install_elpi.log
           exit 1
         fi
+        stdbuf -oL tee -a install_elpi.log < install_elpi.log
         echo "Installing coq-mathcomp-ssreflect..."
         touch install_mathcomp.log
-        opam install -y --verbose --debug coq-mathcomp-ssreflect.2.4.0 | stdbuf -oL tee -a install_mathcomp.log
-        if [ $? -ne 0 ]; then
+        opam install -y --verbose --debug coq-mathcomp-ssreflect.2.4.0 >> install_mathcomp.log 2>&1
+        if [ $?
+        -ne 0 ]; then
           echo "coq-mathcomp-ssreflect installation failed"
           cat install_mathcomp.log
           exit 1
         fi
+        stdbuf -oL tee -a install_mathcomp.log < install_mathcomp.log
         echo "Updating environment..."
         eval $(opam env --switch=collatz-proof --set-switch)
 
