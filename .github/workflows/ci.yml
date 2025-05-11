@@ -40,7 +40,7 @@ jobs:
         echo "Removing existing switch if present..."
         opam switch remove "${SWITCH_NAME}" --yes || true
 
-        echo "Creating OPAM switch '${SWITCH_NAME}' with OCaml ${OCAML_VERSION}..."
+        echo "Creating OPAM switch '${SWITCH_NAME}' with OCAML ${OCAML_VERSION}..."
         opam switch create "${SWITCH_NAME}" "${OCAML_VERSION}" || { echo "Switch creation failed"; exit 1; }
 
         echo "Activating environment..."
@@ -50,40 +50,37 @@ jobs:
         opam repository add coq-released https://coq.inria.fr/opam/released --all-switches || { echo "Repository add failed"; exit 1; }
         opam update || { echo "OPAM update failed"; exit 1; }
 
-    - name: Install Coq
+    - name: Pin Coq Version
       run: |
         echo "Listing available Coq versions..."
         opam list --all-versions coq
-
-        echo "Listing repository state..."
-        opam repo list
-
         echo "Pinning Coq 8.16.1..."
-        opam pin add coq 8.16.1 -y --verbose --no-action https://github.com/coq/coq.git#V8.16.1 || { echo "Pinning failed"; opam list --all-versions coq; exit 1; }
+        opam pin add coq 8.16.1 -y --verbose || { echo "Pinning failed"; opam list --all-versions coq; exit 1; }
 
+    - name: Install Coq
+      run: |
         echo "Installing Coq 8.16.1..."
-        opam install coq.8.16.1 -y --verbose --unlock-base --debug || { echo "Coq 8.16.1 installation failed"; exit 1; }
+        opam install coq.8.16.1 -y --verbose || { echo "Coq 8.16.1 installation failed"; exit 1; }
 
-    - name: Install Dependencies
+    - name: Verify Coq Installation
       run: |
-        echo "Installing coq-elpi..."
-        opam install -y --verbose coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
-
-        echo "Installing coq-mathcomp-ssreflect..."
-        opam install -y --verbose coq-mathcomp-ssreflect.2.4.0 || { echo "coq-mathcomp-ssreflect installation failed"; exit 1; }
-
-    - name: Verify Installation
-      run: |
-        echo "Listing installed packages..."
-        opam list --installed
         echo "Checking Coq version..."
         coqtop --version || { echo "coqtop not found"; exit 1; }
+        echo "Listing installed packages..."
+        opam list --installed
         if ! opam list --installed | grep -q "coq.*8.16.1"; then
           echo "Coq 8.16.1 not found in installed packages"
           opam list --all-versions coq
           exit 1
         fi
         echo "Coq installation verified."
+
+    - name: Install Dependencies
+      run: |
+        echo "Installing coq-elpi..."
+        opam install -y --verbose coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
+        echo "Installing coq-mathcomp-ssreflect..."
+        opam install -y --verbose coq-mathcomp-ssreflect.2.4.0 || { echo "coq-mathcomp-ssreflect installation failed"; exit 1; }
 
     - name: Compile Coq Project
       run: |
