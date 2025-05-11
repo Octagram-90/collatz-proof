@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v9 # Incremented to v9
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v10 # Incremented to v10
         restore-keys: |
           ${{ runner.os }}-opam-
 
@@ -78,13 +78,17 @@ jobs:
         ls -l *.log
         cat opam_config.log coq_versions.log repo_list.log
 
-    - name: Pin Coq Version (Alternative 2 - Git Pinning)
+    # Alternative 1: Simplified Pinning with coq-released Repository
+    - name: Pin Coq Version (Alternative 1 - Simplified Pinning)
       run: |
         set -exo pipefail
-        echo "Pinning Coq 8.16.1 from Git..."
+        echo "Pinning Coq 8.16.1..."
         touch pin_coq.log
-        opam pin add coq https://github.com/coq/coq.git#V8.16.1 -y --verbose --debug --show > pin_coq.log 2>&1
+        # Disable pipefail temporarily to ensure error handling
+        set +o pipefail
+        opam pin add coq 8.16.1 -y --verbose --debug --show > pin_coq.log 2>&1
         PIN_EXIT_CODE=$?
+        set -o pipefail
         stdbuf -oL tee -a pin_coq.log < pin_coq.log
         if [ $PIN_EXIT_CODE -ne 0 ]; then
           echo "Pinning failed with exit code $PIN_EXIT_CODE"
@@ -104,7 +108,16 @@ jobs:
         echo "Verifying OPAM environment..."
         opam env
 
-    - name: Install Coq (Alternative 2 - Git Pinning)
+    - name: Upload Logs After Pinning
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: opam-logs-after-pinning
+        path: |
+          *.log
+        retention-days: 7
+
+    - name: Install Coq (Alternative 1 - Simplified Pinning)
       run: |
         set -exo pipefail
         echo "Showing planned Coq installation actions..."
@@ -143,16 +156,18 @@ jobs:
         echo "Verifying OPAM environment..."
         opam env
 
-    # Alternative 1: Simplified Pinning with coq-released Repository
-    # - Uses opam pin add coq 8.16.1 without Git URL
-    # - To use, comment out Alternative 2 and 3, uncomment this
-    # - name: Pin Coq Version (Alternative 1 - Simplified Pinning)
+    # Alternative 2: Git Pinning
+    # - Uses opam pin add coq https://github.com/coq/coq.git#V8.16.1
+    # - To use, comment out Alternative 1 and 3, uncomment this
+    # - name: Pin Coq Version (Alternative 2 - Git Pinning)
     #   run: |
     #     set -exo pipefail
-    #     echo "Pinning Coq 8.16.1..."
+    #     echo "Pinning Coq 8.16.1 from Git..."
     #     touch pin_coq.log
-    #     opam pin add coq 8.16.1 -y --verbose --debug --show > pin_coq.log 2>&1
+    #     set +o pipefail
+    #     opam pin add coq https://github.com/coq/coq.git#V8.16.1 -y --verbose --debug --show > pin_coq.log 2>&1
     #     PIN_EXIT_CODE=$?
+    #     set -o pipefail
     #     stdbuf -oL tee -a pin_coq.log < pin_coq.log
     #     if [ $PIN_EXIT_CODE -ne 0 ]; then
     #       echo "Pinning failed with exit code $PIN_EXIT_CODE"
@@ -172,7 +187,16 @@ jobs:
     #     echo "Verifying OPAM environment..."
     #     opam env
     #
-    # - name: Install Coq (Alternative 1 - Simplified Pinning)
+    # - name: Upload Logs After Pinning (Alternative 2)
+    #   if: always()
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: opam-logs-after-pinning-alt2
+    #     path: |
+    #       *.log
+    #     retention-days: 7
+    #
+    # - name: Install Coq (Alternative 2 - Git Pinning)
     #   run: |
     #     set -exo pipefail
     #     echo "Showing planned Coq installation actions..."
@@ -220,8 +244,10 @@ jobs:
     #     set -exo pipefail
     #     echo "Pinning Rocq 9.0.0..."
     #     touch pin_coq.log
+    #     set +o pipefail
     #     opam pin add coq 9.0.0 -y --verbose --debug --show > pin_coq.log 2>&1
     #     PIN_EXIT_CODE=$?
+    #     set -o pipefail
     #     stdbuf -oL tee -a pin_coq.log < pin_coq.log
     #     if [ $PIN_EXIT_CODE -ne 0 ]; then
     #       echo "Pinning failed with exit code $PIN_EXIT_CODE"
@@ -240,6 +266,15 @@ jobs:
     #     echo $PATH
     #     echo "Verifying OPAM environment..."
     #     opam env
+    #
+    # - name: Upload Logs After Pinning (Alternative 3)
+    #   if: always()
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: opam-logs-after-pinning-alt3
+    #     path: |
+    #       *.log
+    #     retention-days: 7
     #
     # - name: Install Rocq (Alternative 3 - Rocq Setup)
     #   run: |
