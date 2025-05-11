@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v5 # Incremented to invalidate cache
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v6 # Incremented to invalidate cache
         restore-keys: |
           ${{ runner.os }}-opam-
 
@@ -59,12 +59,18 @@ jobs:
         COQ_PATH=$(opam var coq:bin)
         echo "COQ_PATH is $COQ_PATH"
         echo "export PATH=$COQ_PATH:\$PATH" >> $GITHUB_ENV
+        echo "Updated PATH: $PATH"
 
     - name: Verify Coq Installation
       run: |
+        echo "Checking installed Coq packages..."
+        opam list | grep coq || { echo "Coq is not installed!"; exit 1; }
+        echo "Checking Coq binary path..."
+        COQ_BIN_PATH=$(opam var coq:bin)
+        echo "Coq binary path is: $COQ_BIN_PATH"
         echo "Checking Coq version..."
         eval $(opam env --switch=collatz-proof --set-switch)
-        which coqtop || { echo "coqtop binary not found in PATH"; exit 1; }
+        which coqtop || { echo "coqtop binary not found"; exit 1; }
         coqtop --version || { echo "coqtop execution failed"; exit 1; }
 
     - name: Install Dependencies
