@@ -52,9 +52,17 @@ jobs:
 
     - name: Install Coq
       run: |
-        echo "Pinning and installing Coq 8.16.1..."
-        opam pin add coq 8.16.1 -y --verbose || { echo "Coq 8.16.1 pinning/installation failed"; opam list --all-versions coq; exit 1; }
-        opam install coq.8.16.1 -y --verbose || { echo "Coq 8.16.1 installation failed"; exit 1; }
+        echo "Listing available Coq versions..."
+        opam list --all-versions coq
+
+        echo "Listing repository state..."
+        opam repo list
+
+        echo "Pinning Coq 8.16.1..."
+        opam pin add coq 8.16.1 -y --verbose --no-action https://github.com/coq/coq.git#V8.16.1 || { echo "Pinning failed"; opam list --all-versions coq; exit 1; }
+
+        echo "Installing Coq 8.16.1..."
+        opam install coq.8.16.1 -y --verbose --unlock-base --debug || { echo "Coq 8.16.1 installation failed"; exit 1; }
 
     - name: Install Dependencies
       run: |
@@ -83,7 +91,7 @@ jobs:
         eval $(opam env --switch=collatz-proof --set-switch)
 
         echo "Generating Makefile..."
-        coq_makefile -f _CoqProject -o Makefile || { echo "coq_makefile failed"; exit 1; }
+        coq_makefile -f _CoqProject -o Makefile -extra '-w -elpi.linear-variable -elpi.missing-types' || { echo "coq_makefile failed"; exit 1; }
 
         echo "Inspecting Makefile..."
         cat Makefile
