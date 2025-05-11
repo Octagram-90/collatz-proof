@@ -54,13 +54,19 @@ jobs:
       run: |
         echo "Listing available Coq versions..."
         opam list --all-versions coq
+        echo "Listing repository state..."
+        opam repo list
         echo "Pinning Coq 8.16.1..."
-        opam pin add coq 8.16.1 -y --verbose || { echo "Pinning failed"; opam list --all-versions coq; exit 1; }
+        opam pin add coq 8.16.1 -y --verbose --debug || { echo "Pinning failed"; opam list --all-versions coq; exit 1; }
+        echo "Updating environment..."
+        eval $(opam env --switch=collatz-proof --set-switch)
 
     - name: Install Coq
       run: |
         echo "Installing Coq 8.16.1..."
-        opam install coq.8.16.1 -y --verbose || { echo "Coq 8.16.1 installation failed"; exit 1; }
+        opam install coq.8.16.1 -y --verbose --debug || { echo "Coq 8.16.1 installation failed"; opam list --all-versions coq; exit 1; }
+        echo "Updating environment..."
+        eval $(opam env --switch=collatz-proof --set-switch)
 
     - name: Verify Coq Installation
       run: |
@@ -78,9 +84,11 @@ jobs:
     - name: Install Dependencies
       run: |
         echo "Installing coq-elpi..."
-        opam install -y --verbose coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
+        opam install -y --verbose --debug coq-elpi.2.5.2 || { echo "coq-elpi installation failed"; exit 1; }
         echo "Installing coq-mathcomp-ssreflect..."
-        opam install -y --verbose coq-mathcomp-ssreflect.2.4.0 || { echo "coq-mathcomp-ssreflect installation failed"; exit 1; }
+        opam install -y --verbose --debug coq-mathcomp-ssreflect.2.4.0 || { echo "coq-mathcomp-ssreflect installation failed"; exit 1; }
+        echo "Updating environment..."
+        eval $(opam env --switch=collatz-proof --set-switch)
 
     - name: Compile Coq Project
       run: |
