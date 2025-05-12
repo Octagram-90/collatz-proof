@@ -20,14 +20,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v11 # Incremented to v11
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v12
         restore-keys: |
           ${{ runner.os }}-opam-
 
     - name: Set up OCaml and OPAM
       uses: ocaml/setup-ocaml@v3
       with:
-        ocaml-compiler: '4.13.1' # Changed to 4.13.1 to avoid potential conflicts
+        ocaml-compiler: '4.13.1'
         opam-repositories: |
           default: https://opam.ocaml.org
           coq-released: https://coq.inria.fr/opam/released
@@ -78,9 +78,8 @@ jobs:
         ls -l *.log
         cat opam_config.log coq_versions.log repo_list.log
 
-    # Alternative 1: Simplified Pinning with coq-released Repository
     - name: Pin Coq Version (Alternative 1 - Simplified Pinning)
-      timeout-minutes: 10 # Fail after 10 minutes to avoid hanging
+      timeout-minutes: 10
       run: |
         set -exo pipefail
         echo "Pinning Coq 8.16.1..."
@@ -156,210 +155,6 @@ jobs:
         echo "Verifying OPAM environment..."
         opam env
 
-    # Alternative 4: No Pinning, Direct Install
-    # - Directly installs coq.8.16.1 without pinning
-    # - To use, comment out Alternative 1, 2, and 3, uncomment this
-    # - name: Install Coq (Alternative 4 - No Pinning)
-    #   run: |
-    #     set -exo pipefail
-    #     echo "Installing Coq 8.16.1 without pinning..."
-    #     touch install_coq.log
-    #     opam install coq.8.16.1 -y --verbose > install_coq.log 2>&1
-    #     INSTALL_EXIT_CODE=$?
-    #     stdbuf -oL tee -a install_coq.log < install_coq.log
-    #     if [ $INSTALL_EXIT_CODE -ne 0 ]; then
-    #       echo "Coq 8.16.1 installation failed with exit code $INSTALL_EXIT_CODE"
-    #       cat install_coq.log
-    #       opam list --all-versions coq
-    #       exit 1
-    #     fi
-    #     echo "Verifying install_coq.log..."
-    #     ls -l install_coq.log
-    #     cat install_coq.log
-    #     echo "Checking Coq package info..."
-    #     opam info coq | stdbuf -oL tee -a install_coq.log
-    #     echo "Listing OPAM bin directory..."
-    #     ls -l ~/.opam/collatz-proof/bin || echo "Bin directory empty or missing"
-    #     echo "Searching for coqtop..."
-    #     find ~/.opam -name coqtop || echo "coqtop not found in ~/.opam"
-    #     echo "Checking installed packages..."
-    #     opam list --installed | stdbuf -oL tee -a installed_packages.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Checking coqtop location..."
-    #     which coqtop || { echo "coqtop not found in PATH"; exit 1; }
-    #     echo "Verifying coqtop..."
-    #     touch coq_version.log
-    #     coqtop --version | stdbuf -oL tee -a coq_version.log
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-
-    # Alternative 2: Git Pinning
-    # - Uses opam pin add coq https://github.com/coq/coq.git#V8.16.1
-    # - To use, comment out Alternative 1, 3, and 4, uncomment this
-    # - name: Pin Coq Version (Alternative 2 - Git Pinning)
-    #   timeout-minutes: 10
-    #   run: |
-    #     set -exo pipefail
-    #     echo "Pinning Coq 8.16.1 from Git..."
-    #     touch pin_coq.log
-    #     set +o pipefail
-    #     opam pin add coq https://github.com/coq/coq.git#V8.16.1 -y --verbose --show > pin_coq.log 2>&1
-    #     PIN_EXIT_CODE=$?
-    #     set -o pipefail
-    #     stdbuf -oL tee -a pin_coq.log < pin_coq.log
-    #     if [ $PIN_EXIT_CODE -ne 0 ]; then
-    #       echo "Pinning failed with exit code $PIN_EXIT_CODE"
-CHAT_SYSTEM: The output was truncated here. Below is the completion of the `Pin Coq Version (Alternative 2 - Git Pinning)` step and the rest of the workflow, ensuring continuity:
-
-```yaml
-    #       cat pin_coq.log
-    #       opam list --all-versions coq
-    #       exit 1
-    #     fi
-    #     echo "Verifying pin_coq.log..."
-    #     ls -l pin_coq.log
-    #     cat pin_coq.log
-    #     echo "Checking pinned package..."
-    #     opam show coq | stdbuf -oL tee -a pin_coq.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-    #
-    # - name: Upload Logs After Pinning (Alternative 2)
-    #   if: always()
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: opam-logs-after-pinning-alt2
-    #     path: |
-    #       *.log
-    #     retention-days: 7
-    #
-    # - name: Install Coq (Alternative 2 - Git Pinning)
-    #   run: |
-    #     set -exo pipefail
-    #     echo "Showing planned Coq installation actions..."
-    #     touch install_coq.log
-    #     opam install coq.8.16.1 --show-actions | stdbuf -oL tee -a install_coq.log
-    #     echo "Installing Coq 8.16.1..."
-    #     opam install coq.8.16.1 -y --verbose > install_coq.log 2>&1
-    #     INSTALL_EXIT_CODE=$?
-    #     stdbuf -oL tee -a install_coq.log < install_coq.log
-    #     if [ $INSTALL_EXIT_CODE -ne 0 ]; then
-    #       echo "Coq 8.16.1 installation failed with exit code $INSTALL_EXIT_CODE"
-    #       cat install_coq.log
-    #       opam list --all-versions coq
-    #       exit 1
-    #     fi
-    #     echo "Verifying install_coq.log..."
-    #     ls -l install_coq.log
-    #     cat install_coq.log
-    #     echo "Checking Coq package info..."
-    #     opam info coq | stdbuf -oL tee -a install_coq.log
-    #     echo "Listing OPAM bin directory..."
-    #     ls -l ~/.opam/collatz-proof/bin || echo "Bin directory empty or missing"
-    #     echo "Searching for coqtop..."
-    #     find ~/.opam -name coqtop || echo "coqtop not found in ~/.opam"
-    #     echo "Checking installed packages..."
-    #     opam list --installed | stdbuf -oL tee -a installed_packages.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Checking coqtop location..."
-    #     which coqtop || { echo "coqtop not found in PATH"; exit 1; }
-    #     echo "Verifying coqtop..."
-    #     touch coq_version.log
-    #     coqtop --version | stdbuf -oL tee -a coq_version.log
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-
-    # Alternative 3: Rocq-Based Setup
-    # - Uses coq.9.0.0 to align with rocq-core.9.0.0
-    # - Requires updating Coq files to use Corelib.* imports
-    # - To use, comment out Alternative 1, 2, and 4, uncomment this
-    # - name: Pin Rocq Version (Alternative 3 - Rocq Setup)
-    #   timeout-minutes: 10
-    #   run: |
-    #     set -exo pipefail
-    #     echo "Pinning Rocq 9.0.0..."
-    #     touch pin_coq.log
-    #     set +o pipefail
-    #     opam pin add coq 9.0.0 -y --verbose --show > pin_coq.log 2>&1
-    #     PIN_EXIT_CODE=$?
-    #     set -o pipefail
-    #     stdbuf -oL tee -a pin_coq.log < pin_coq.log
-    #     if [ $PIN_EXIT_CODE -ne 0 ]; then
-    #       echo "Pinning failed with exit code $PIN_EXIT_CODE"
-    #       cat pin_coq.log
-    #       opam list --all-versions coq
-    #       exit 1
-    #     fi
-    #     echo "Verifying pin_coq.log..."
-    #     ls -l pin_coq.log
-    #     cat pin_coq.log
-    #     echo "Checking pinned package..."
-    #     opam show coq | stdbuf -oL tee -a pin_coq.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-    #
-    # - name: Upload Logs After Pinning (Alternative 3)
-    #   if: always()
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: opam-logs-after-pinning-alt3
-    #     path: |
-    #       *.log
-    #     retention-days: 7
-    #
-    # - name: Install Rocq (Alternative 3 - Rocq Setup)
-    #   run: |
-    #     set -exo pipefail
-    #     echo "Showing planned Rocq installation actions..."
-    #     touch install_coq.log
-    #     opam install coq.9.0.0 --show-actions | stdbuf -oL tee -a install_coq.log
-    #     echo "Installing Rocq 9.0.0..."
-    #     opam install coq.9.0.0 -y --verbose > install_coq.log 2>&1
-    #     INSTALL_EXIT_CODE=$?
-    #     stdbuf -oL tee -a install_coq.log < install_coq.log
-    #     if [ $INSTALL_EXIT_CODE -ne 0 ]; then
-    #       echo "Rocq 9.0.0 installation failed with exit code $INSTALL_EXIT_CODE"
-    #       cat install_coq.log
-    #       opam list --all-versions coq
-    #       exit 1
-    #     fi
-    #     echo "Verifying install_coq.log..."
-    #     ls -l install_coq.log
-    #     cat install_coq.log
-    #     echo "Checking Coq package info..."
-    #     opam info coq | stdbuf -oL tee -a install_coq.log
-    #     echo "Listing OPAM bin directory..."
-    #     ls -l ~/.opam/collatz-proof/bin || echo "Bin directory empty or missing"
-    #     echo "Searching for coqtop..."
-    #     find ~/.opam -name coqtop || echo "coqtop not found in ~/.opam"
-    #     echo "Checking installed packages..."
-    #     opam list --installed | stdbuf -oL tee -a installed_packages.log
-    #     echo "Updating environment..."
-    #     eval $(opam env --switch=collatz-proof --set-switch)
-    #     echo "Checking PATH..."
-    #     echo $PATH
-    #     echo "Checking coqtop location..."
-    #     which coqtop || { echo "coqtop not found in PATH"; exit 1; }
-    #     echo "Verifying coqtop..."
-    #     touch coq_version.log
-    #     coqtop --version | stdbuf -oL tee -a coq_version.log
-    #     echo "Verifying OPAM environment..."
-    #     opam env
-
     - name: Verify Coq Installation
       run: |
         set -exo pipefail
@@ -378,10 +173,9 @@ CHAT_SYSTEM: The output was truncated here. Below is the completion of the `Pin 
         echo "Listing installed packages..."
         touch installed_packages.log
         opam list --installed | stdbuf -oL tee -a installed_packages.log
-        # Check for expected Coq version
-        EXPECTED_VERSION=$(grep "coq.*\(8.16.1\|9.0.0\)" installed_packages.log || echo "")
+        EXPECTED_VERSION=$(grep "coq.*8.16.1" installed_packages.log || echo "")
         if [ -z "$EXPECTED_VERSION" ]; then
-          echo "Expected Coq version (8.16.1 or 9.0.0) not found"
+          echo "Expected Coq version 8.16.1 not found"
           opam list --all-versions coq
           exit 1
         fi
