@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.opam
-        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v12
+        key: ${{ runner.os }}-opam-${{ hashFiles('**/_CoqProject') }}-v13
         restore-keys: |
           ${{ runner.os }}-opam-
 
@@ -78,53 +78,16 @@ jobs:
         ls -l *.log
         cat opam_config.log coq_versions.log repo_list.log
 
-    - name: Pin Coq Version (Alternative 1 - Simplified Pinning)
+    - name: Install Coq (Direct Install)
       timeout-minutes: 10
       run: |
         set -exo pipefail
-        echo "Pinning Coq 8.16.1..."
-        touch pin_coq.log
-        set +o pipefail
-        opam pin add coq 8.16.1 -y --verbose --show > pin_coq.log 2>&1
-        PIN_EXIT_CODE=$?
-        set -o pipefail
-        stdbuf -oL tee -a pin_coq.log < pin_coq.log
-        if [ $PIN_EXIT_CODE -ne 0 ]; then
-          echo "Pinning failed with exit code $PIN_EXIT_CODE"
-          cat pin_coq.log
-          opam list --all-versions coq
-          exit 1
-        fi
-        echo "Verifying pin_coq.log..."
-        ls -l pin_coq.log
-        cat pin_coq.log
-        echo "Checking pinned package..."
-        opam show coq | stdbuf -oL tee -a pin_coq.log
-        echo "Updating environment..."
-        eval $(opam env --switch=collatz-proof --set-switch)
-        echo "Checking PATH..."
-        echo $PATH
-        echo "Verifying OPAM environment..."
-        opam env
-
-    - name: Upload Logs After Pinning
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: opam-logs-after-pinning
-        path: |
-          *.log
-        retention-days: 7
-
-    - name: Install Coq (Alternative 1 - Simplified Pinning)
-      run: |
-        set -exo pipefail
-        echo "Showing planned Coq installation actions..."
+        echo "Installing Coq 8.16.1 without pinning..."
         touch install_coq.log
-        opam install coq.8.16.1 --show-actions | stdbuf -oL tee -a install_coq.log
-        echo "Installing Coq 8.16.1..."
-        opam install coq.8.16.1 -y --verbose > install_coq.log 2>&1
+        set +o pipefail
+        opam install coq.8.16.1 -y > install_coq.log 2>&1
         INSTALL_EXIT_CODE=$?
+        set -o pipefail
         stdbuf -oL tee -a install_coq.log < install_coq.log
         if [ $INSTALL_EXIT_CODE -ne 0 ]; then
           echo "Coq 8.16.1 installation failed with exit code $INSTALL_EXIT_CODE"
@@ -154,6 +117,15 @@ jobs:
         coqtop --version | stdbuf -oL tee -a coq_version.log
         echo "Verifying OPAM environment..."
         opam env
+
+    - name: Upload Logs After Install
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: opam-logs-after-install
+        path: |
+          *.log
+        retention-days: 7
 
     - name: Verify Coq Installation
       run: |
@@ -187,7 +159,7 @@ jobs:
         echo "Installing coq-elpi..."
         eval $(opam env --switch=collatz-proof --set-switch)
         touch install_elpi.log
-        opam install -y --verbose coq-elpi.2.5.2 > install_elpi.log 2>&1
+        opam install -y coq-elpi.2.5.2 > install_elpi.log 2>&1
         ELPI_EXIT_CODE=$?
         stdbuf -oL tee -a install_elpi.log < install_elpi.log
         if [ $ELPI_EXIT_CODE -ne 0 ]; then
@@ -197,7 +169,7 @@ jobs:
         fi
         echo "Installing coq-mathcomp-ssreflect..."
         touch install_mathcomp.log
-        opam install -y --verbose coq-mathcomp-ssreflect.2.4.0 > install_mathcomp.log 2>&1
+        opam install -y coq-mathcomp-ssreflect.2.4.0 > install_mathcomp.log 2>&1
         MATHCOMP_EXIT_CODE=$?
         stdbuf -oL tee -a install_mathcomp.log < install_mathcomp.log
         if [ $MATHCOMP_EXIT_CODE -ne 0 ]; then
